@@ -16,11 +16,17 @@ DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
-
 INSTALLED_APPS = [
     'mailqueue',
     'corsheaders',
     'rest_framework',
+
+    'web',
+    'posts',
+    'reports',
+    'accounts',
+    'general',
+    'notifications',
 
     'django.contrib.auth',
     'django.contrib.admin',
@@ -34,8 +40,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
