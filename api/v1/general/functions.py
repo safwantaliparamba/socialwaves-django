@@ -28,7 +28,7 @@ def send_email(to_address, subject, content, html_content, attachment=None, atta
     new_message.to_address = to_address
     if bcc_address:
         new_message.bcc_address = bcc_address
-    new_message.from_address = "Jobified Private Limited"
+    new_message.from_address = "Socialwaves Pvt Ltd"
     new_message.content = content
     new_message.html_content = html_content
     if attachment:
