@@ -17,16 +17,6 @@ DEBUG = env.bool("DEBUG")
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
-    'mailqueue',
-    'corsheaders',
-    'rest_framework',
-
-    'web',
-    'posts',
-    'reports',
-    'accounts',
-    'general',
-    'notifications',
 
     'django.contrib.auth',
     'django.contrib.admin',
@@ -34,6 +24,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.contenttypes',
+
+    'web',
+    'posts',
+    'reports',
+    'general',
+    'accounts',
+    'notifications',
+
+    'mailqueue',
+    'corsheaders',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -89,6 +90,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'socialwave_django.wsgi.application'
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -103,6 +105,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'accounts.User'
 
 LANGUAGE_CODE = 'en-us'
 
@@ -146,7 +150,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=env('ACCESS_TOKEN_EXPIRE_DAYS', cast=int)),
 }
 
-# EMAIL_USE_TLS = env('EMAIL_USE_TLS')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
