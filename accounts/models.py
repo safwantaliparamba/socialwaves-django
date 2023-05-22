@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractUser, BaseUserManager 
 
 from general.encryptions import encrypt
+from general.models import BaseModel
 
 
 class CustomUserManager(BaseUserManager):
@@ -34,6 +35,7 @@ class User(AbstractUser):
     encrypted_password = models.TextField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -54,3 +56,18 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+
+
+class ProfileActivity(BaseModel):
+    visitor = models.ForeignKey(User,on_delete=models.CASCADE,related_name='activity')
+    profile = models.ForeignKey(User, on_delete=models.CASCADE,related_name='profile_activity')
+
+    class Meta:
+        db_table = 'accounts_profile_activity'
+        verbose_name = 'profile_activity'
+        verbose_name_plural = 'profile_activities'
+        ordering = ('-date_added',)
+
+    def __str__(self):
+        return self.visitor.email

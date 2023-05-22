@@ -45,6 +45,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    
+    'general.middlewares.RequestMiddleware',
 ]
 
 REST_FRAMEWORK = {
