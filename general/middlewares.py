@@ -1,4 +1,5 @@
 import threading
+from django.http.request import HttpRequest
 
 
 class RequestMiddleware:
@@ -8,13 +9,13 @@ class RequestMiddleware:
     self.thread_local = thread_local
     # One-time configuration and initialization.
 
-  def __call__(self, request):
+  def __call__(self, request: HttpRequest):
     # Code to be executed for each request before
     # the view (and later middleware) are called.
     self.thread_local.current_request = request
-
     response = self.get_response(request)
 
+    print(request.user.is_authenticated)
     # Code to be executed for each request/response after
     # the view is called.
 
