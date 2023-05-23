@@ -17,6 +17,9 @@ DEBUG = env.bool("DEBUG")
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
+    'mailqueue',
+    'corsheaders',
+    'rest_framework',
 
     'django.contrib.auth',
     'django.contrib.admin',
@@ -31,13 +34,11 @@ INSTALLED_APPS = [
     'general',
     'accounts',
     'notifications',
-
-    'mailqueue',
-    'corsheaders',
-    'rest_framework',
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -108,6 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 AUTH_USER_MODEL = 'accounts.User'
 
 LANGUAGE_CODE = 'en-us'
@@ -158,3 +161,5 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = env('EMAIL_PORT', cast=int)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CLIENT_DOMAIN = env('CLIENT_DOMAIN')

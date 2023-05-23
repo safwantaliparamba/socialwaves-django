@@ -14,7 +14,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError(_('The Email field must be set.'))
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user: User = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
 
@@ -31,22 +31,19 @@ class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(unique=True)
+    is_email_verified = models.BooleanField(default=False)
+    is_TFA_activated = models.BooleanField(default=False) # two factor authentication
     image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)
     encrypted_password = models.TextField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    date_updated = models.DateTimeField(null=True, blank=True, auto_now=True)
     
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
-
-    def save(self, *args, **kwargs):
-        
-        if self._state.adding:
-            self.encrypted_password = encrypt(self.password)
-
-        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'accounts_user'
