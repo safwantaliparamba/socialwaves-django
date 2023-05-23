@@ -40,6 +40,8 @@ def send_email(to_address, subject, content, html_content, attachment=None, atta
     new_message.app = "default"
     new_message.save()
 
+    return new_message.sent
+
 
 # def generate_unique_username(username):
 

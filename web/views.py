@@ -1,8 +1,3 @@
-
-from pprint import pprint
-
-from django.http.response import HttpResponse
-from django.http.request import HttpRequest
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -10,7 +5,7 @@ from rest_framework.permissions import AllowAny
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def index(request: HttpRequest):
+def index(request):
     # x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     # if x_forwarded_for:
     #     ip = x_forwarded_for.split(',')[0]
@@ -51,4 +46,4 @@ def index(request: HttpRequest):
 
     # print(context)
 
-    return Response("Socialwaves",status=200)
+    return Response("Socialwaves")
