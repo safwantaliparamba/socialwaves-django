@@ -6,9 +6,10 @@ from . import views
 
 
 app_name = 'api_v1_accounts'
-
+ 
 urlpatterns = [
     re_path(r'^sign-up/$',views.signup),
+    re_path(r'^sign-in/$',views.login),
     re_path(r'^email/confirm/(?P<token>.*)/$',views.email_confirmation),
 
     #jwt auth routes
