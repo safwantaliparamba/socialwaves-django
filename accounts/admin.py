@@ -5,7 +5,7 @@ from accounts.models import User, ProfileActivity
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["email","id","is_superuser","is_deleted","is_TFA_activated","is_email_verified"]
+    list_display = ["email","id","name","username","image","is_superuser","is_deleted","is_TFA_activated","is_email_verified"]
     exclude = ["password"]
     actions = ['temp_delete']
 
