@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'mailqueue',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
 
     'django.contrib.auth',
     'django.contrib.admin',
@@ -60,6 +61,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 DATABASES = {
@@ -163,3 +165,11 @@ EMAIL_PORT = env('EMAIL_PORT', cast=int)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CLIENT_DOMAIN = env('CLIENT_DOMAIN')
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Socialwaves API',
+    'DESCRIPTION': 'Social media web app with custom analytics and more.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
