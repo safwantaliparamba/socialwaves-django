@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from accounts.models import User, ProfileActivity
+from accounts.models import User, ProfileActivity, UserSession
 
 
 @admin.register(User)
@@ -22,3 +22,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(ProfileActivity)
 class ProfileActivityAdmin(admin.ModelAdmin):
     list_display = ["id","visitor","profile"]
+
+@admin.register(UserSession)
+class UserSessionAdmin(admin.ModelAdmin):
+    list_display = ["user","ip","id","is_active","country","state","location","system"]

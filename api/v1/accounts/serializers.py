@@ -1,11 +1,15 @@
 import json
 import requests
+import geocoder
 # from pprint import pprint
+
+from django.http.request import HttpRequest
 
 from rest_framework import serializers
 
-from accounts.models import User
+from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from general.functions import get_client_ip
 
 
 class SignupSerializer(serializers.Serializer):
@@ -57,7 +61,7 @@ class LoginSerializer(serializers.Serializer):
         return attrs
     
     def save(self, **kwargs):
-        request = kwargs.get("request")
+        request:HttpRequest = kwargs.get("request")
         email = self.validated_data.get("email")
         password = self.validated_data.get("password")
 
@@ -82,7 +86,33 @@ class LoginSerializer(serializers.Serializer):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
 
+        client_ip = get_client_ip(request)
+
         if response.status_code == 200:
+            location = geocoder.ip(client_ip)
+
+            system_meta = request.META.get("HTTP_USER_AGENT")
+            system = request.headers.get("Sec-Ch-Ua-Platform")
+
+            is_main_exists = False
+
+            if user.sessions.filter(is_main=True,is_deleted=False).exists():
+                is_main_exists = True
+
+            user_session = UserSession.objects.create(
+                user=user,
+                ip=client_ip,
+                country=location.country,
+                state=location.state,
+                location=location.city,
+                system=system,
+                system_meta_data=system_meta,
+            )
+
+            if not is_main_exists:
+                user_session.is_main = True
+                user_session.save()
+
             return {
                 "statusCode":6000,
                 "data":{
@@ -91,6 +121,7 @@ class LoginSerializer(serializers.Serializer):
                     "username":user.username,
                     "refresh": response.json().get("refresh"),
                     "access": response.json().get("access"),
+                    "session_id": user_session.id,
                 }       
             }
         return {
