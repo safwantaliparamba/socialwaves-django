@@ -68,3 +68,25 @@ class ProfileActivity(BaseModel):
 
     def __str__(self):
         return self.visitor.email
+
+
+class UserSession(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sessions")
+    ip = models.CharField(max_length=255, null=True, blank=True)
+    country = models.CharField(max_length=255, null=True, blank=True)
+    state = models.CharField(max_length=255, null=True,blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_main = models.BooleanField(default=False)
+    system = models.CharField(max_length=255, null=True, blank=True)
+    system_meta_data = models.TextField(null=True, blank=True)
+    date_signed_out = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'accounts_user_session'
+        verbose_name = 'user_session'
+        verbose_name_plural = 'user_sessions'
+        ordering = ('-date_added',)
+
+    def __str__(self):
+        return self.ip

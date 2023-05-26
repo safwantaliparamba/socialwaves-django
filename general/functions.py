@@ -3,6 +3,8 @@ import random
 import string
 from random import randint
 
+from django.http.request import HttpRequest
+
 
 def randomnumber(n):
     range_start = 10**(n-1)
@@ -72,7 +74,7 @@ def is_valid_uuid(value):
         return False
     
 
-def get_client_ip(request):
+def get_client_ip(request: HttpRequest):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 
     if x_forwarded_for:

@@ -12,8 +12,8 @@ def index(request):
     # else:
     #     ip = request.META.get('REMOTE_ADDR')
 
-    # pprint(request.META["HTTP_USER_AGENT"])
-    # pprint(request.headers.get("Sec-Ch-Ua-Platform"))
+    # print(request.META["HTTP_USER_AGENT"])
+    # print(request.headers.get("Sec-Ch-Ua-Platform"))
 
     # device_type = ""
     # browser_type = ""

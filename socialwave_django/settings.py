@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 
+
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -165,7 +166,6 @@ EMAIL_PORT = env('EMAIL_PORT', cast=int)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CLIENT_DOMAIN = env('CLIENT_DOMAIN')
-
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Socialwaves API',
