@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from accounts.models import User, ProfileActivity, UserSession
+from accounts.models import User, ProfileActivity, UserSession, ChiefProfile
 
 
 @admin.register(User)
@@ -26,3 +26,9 @@ class ProfileActivityAdmin(admin.ModelAdmin):
 @admin.register(UserSession)
 class UserSessionAdmin(admin.ModelAdmin):
     list_display = ["user","ip","id","is_active","country","state","location","system"]
+
+
+@admin.register(ChiefProfile)
+class ChiefProfileAdmin(admin.ModelAdmin):
+    list_display = ["email","username","profile_type","name"]
+    # exclude = ["password"]

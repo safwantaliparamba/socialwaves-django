@@ -1,11 +1,14 @@
 import uuid
 
 from django.db import models
+from django.http.request import HttpRequest
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import AbstractUser, BaseUserManager 
+from django.contrib.auth.models import AbstractUser, BaseUserManager, Group
 
-from general.encryptions import encrypt
 from general.models import BaseModel
+from general.encryptions import encrypt
+from general.middlewares import RequestMiddleware
+from general.functions import random_password,get_auto_id,generate_unique_id
 
 
 class CustomUserManager(BaseUserManager):
@@ -90,3 +93,71 @@ class UserSession(BaseModel):
 
     def __str__(self):
         return self.ip
+    
+
+
+CHIEF_PRFILE_TYPES = [
+    ("chief","Chief")
+]
+    
+
+class ChiefProfile(BaseModel):
+    user = models.OneToOneField(User,related_name="chief",on_delete=models.CASCADE,null=True,blank=True)
+
+    username = models.CharField(max_length=255, null=True, blank=True)
+    password = models.TextField(null=True, blank=True)
+    profile_type = models.CharField(choices=CHIEF_PRFILE_TYPES,default='chief',max_length=128)
+    name = models.CharField(max_length=128,null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    phone = models.CharField(max_length=30,null=True, blank=True)
+
+    class Meta:
+        db_table = "users_chief_profile"
+        verbose_name = "Chief Profile"
+        verbose_name_plural = "Chief Profiles"
+        ordering = ('auto_id',)
+
+    def __str__(self):
+        return self.email
+
+    def save(self, *args, **kwargs):
+
+        if self._state.adding:
+            request = RequestMiddleware(get_response=None)
+            request:HttpRequest = request.thread_local.current_request
+
+            chief_password = self.password
+            chief_username = self.username
+            
+            if not chief_password:
+                chief_password = random_password(12)
+
+            if not chief_username:
+                chief_username = generate_unique_id(12)
+
+            user = self.user
+
+            if not user:
+                user = User.objects.create_user(
+                    email=self.email,
+                    password=chief_password,
+                    name=self.name,
+                    encrypted_password=encrypt(chief_password),
+                )
+                self.user = user
+
+            elif self.user:
+                self.user.set_password(chief_password)
+                self.user.save()
+
+            if self.profile_type == 'chief':
+                usergroup, created = Group.objects.get_or_create(name="chief")
+                usergroup.user_set.add(user)
+
+            self.auto_id = get_auto_id(ChiefProfile)
+            self.password = encrypt(chief_password)
+            self.creator = request.user
+            self.updater = request.user 
+
+
+        super(ChiefProfile,self).save(*args, **kwargs)
