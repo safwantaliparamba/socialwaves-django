@@ -19,7 +19,7 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ['date_added', 'date_updated']
     list_display_links = ['id']
     inlines = [PostMediaAdmin,PostReactionAdmin,PostReachAdmin]
-    actions = ['temp_delete']
+    actions = ['temp_delete','undo_delete']
 
     def temp_delete(self, request, queryset):
         # Implement your custom action logic here
@@ -28,7 +28,14 @@ class PostAdmin(admin.ModelAdmin):
         selected = queryset.count()
         self.message_user(request, f'{selected} objects processed.')
 
+    def undo_delete(self, request, queryset):
+        queryset.update(is_deleted=False)
+
+        selected = queryset.count()
+        self.message_user(request, f'{selected} objects undo deleted.')
+
     temp_delete.short_description = 'Delete temporarily'
+    undo_delete.short_description = 'Undo delete'
 
 class CommentReactionAdmin(admin.TabularInline):
     model = CommentReaction
@@ -39,7 +46,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['id','post','user','comment_text','comment']
     list_filter = ['date_added','date_updated']
     inlines = [CommentReactionAdmin]
-    actions = ['temp_delete']
+    actions = ['temp_delete','undo_delete']
 
     def temp_delete(self, request, queryset):
         # Implement your custom action logic here
@@ -48,4 +55,11 @@ class CommentAdmin(admin.ModelAdmin):
         selected = queryset.count()
         self.message_user(request, f'{selected} objects processed.')
 
+    def undo_delete(self, request, queryset):
+        queryset.update(is_deleted=False)
+
+        selected = queryset.count()
+        self.message_user(request, f'{selected} objects undo deleted.')
+
     temp_delete.short_description = 'Delete temporarily'
+    undo_delete.short_description = 'Undo delete'
