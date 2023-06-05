@@ -22,7 +22,7 @@ class SignupSerializer(serializers.Serializer):
 
         email = attrs.get('email')
 
-        if User.objects.filter(email=email,is_deleted=False).exists():
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError({"email":"Email already exists"})
 
         return attrs
@@ -118,6 +118,7 @@ class LoginSerializer(serializers.Serializer):
                 "data":{
                     "title":"Success",
                     "email":user.email,
+                    "name":user.name,
                     "username":user.username,
                     "refresh": response.json().get("refresh"),
                     "access": response.json().get("access"),
