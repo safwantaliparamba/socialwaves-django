@@ -10,7 +10,6 @@ class UserAdmin(admin.ModelAdmin):
     actions = ['temp_delete','undo_delete']
 
     def temp_delete(self, request, queryset):
-        # Implement your custom action logic here
         queryset.update(is_deleted=True)
 
         selected = queryset.count()
@@ -32,7 +31,7 @@ class ProfileActivityAdmin(admin.ModelAdmin):
 
 @admin.register(UserSession)
 class UserSessionAdmin(admin.ModelAdmin):
-    list_display = ["user","ip","id","is_active","country","state","location","system"]
+    list_display = ["user","ip","id","is_active","is_main","browser","last_active","last_login"]
 
     actions = ['temp_delete','undo_delete']
     # exclude = ["password"]

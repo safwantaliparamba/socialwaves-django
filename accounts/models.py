@@ -78,11 +78,16 @@ class UserSession(BaseModel):
     ip = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     state = models.CharField(max_length=255, null=True,blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=255, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_main = models.BooleanField(default=False)
     system = models.CharField(max_length=255, null=True, blank=True)
-    system_meta_data = models.TextField(null=True, blank=True)
+    browser = models.CharField(max_length=255, null=True, blank=True)
+    browser_version = models.CharField(max_length=255, null=True, blank=True)
+    is_pc = models.BooleanField(default=False)
+    is_mobile = models.BooleanField(default=False)
+    last_login = models.DateTimeField(null=True, blank=True)
+    last_active = models.DateTimeField(auto_now=True,null=True, blank=True)
     date_signed_out = models.DateTimeField(null=True, blank=True)
 
     class Meta:
