@@ -1,16 +1,16 @@
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes
 
-from accounts.models import User, UserSession
 from general.http import HttpRequest
 from general.functions import is_valid_uuid
+from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from api.v1.accounts.serializers import SignupSerializer, LoginSerializer
 from api.v1.general.functions import generate_serializer_errors, send_email
@@ -18,18 +18,32 @@ from api.v1.general.functions import generate_serializer_errors, send_email
 
 @api_view(["GET"])
 def app(request: HttpRequest):
-    # session_id = request.GET.get('session')
+    session_id = request.GET.get('session_id')
     user: User = request.user
 
-    response_data = {
-        "statusCode": 6000,
-        "data": {
-            "title": "Success",
-            "email": user.email,
-            "username": user.username,
-            "name": user.name,
+    if session_id and UserSession.objects.filter(id= session_id, is_active=True, is_deleted=False).exists():
+        session = UserSession.objects.filter(id= session_id, is_active=True, is_deleted=False).latest("date_added")
+
+        session.last_active = timezone.now()
+        session.save()
+
+        response_data = {
+            "statusCode": 6000,
+            "data": {
+                "title": "Success",
+                "email": user.email,
+                "username": user.username,
+                "name": user.name,
+            }
         }
-    }
+    else:    
+        response_data = {
+            "statusCode": 6001,
+            "data": {
+                "title": "Failed",
+                "message": "session not found",
+            }
+        }
 
     return Response(response_data, status=status.HTTP_200_OK)
 
@@ -115,14 +129,14 @@ def login(request: HttpRequest):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
 def sign_out(request: HttpRequest, session_id):
     user = request.user
 
-    if user.sessions.filter(id=session_id).exists():
+    if user.sessions.filter(id=session_id,is_active=True,is_deleted=False).exists():
         user_session: UserSession = user.sessions.filter(id=session_id).latest("date_added")
 
         user_session.is_active = False
+        user_session.is_main = False
         user_session.date_signed_out = timezone.now()
         user_session.save()
 
