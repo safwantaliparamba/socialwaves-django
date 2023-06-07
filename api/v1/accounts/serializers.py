@@ -11,7 +11,7 @@ from django.http.request import HttpRequest
 from user_agents import parse
 from rest_framework import serializers
 
-from general.functions import get_client_ip
+from general.functions import get_client_ip, is_valid_uuid
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 
@@ -51,6 +51,7 @@ class LoginSerializer(serializers.Serializer):
 
         email = attrs.get('email')
         password = attrs.get('password')
+        session_id = attrs.get('session_id')
 
         if not User.objects.filter(email=email).exists():
             raise serializers.ValidationError({"email":"Email not found"})
@@ -62,6 +63,9 @@ class LoginSerializer(serializers.Serializer):
             else:
                 if not decrypt(user.encrypted_password) == password:
                     raise serializers.ValidationError({"password":"Incorrect password"})
+
+        if session_id and not is_valid_uuid(session_id):
+            raise serializers.ValidationError({"session_id":"Session id is not a valid uuid"})
 
         return attrs
     
