@@ -5,6 +5,9 @@ from django.views.static import serve
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+# from general import cron
+
+# django_cron.autodiscover()
 
 urlpatterns = [
     path('chief/', admin.site.urls), #django admin urls
@@ -20,6 +23,8 @@ urlpatterns = [
 
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    # path('my_cron/', cron.CronTest.as_view(), name='my_cron'),
 
     path('', include('web.urls','web')),
 ]
