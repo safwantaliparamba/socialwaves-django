@@ -11,9 +11,9 @@ from django.http.request import HttpRequest
 from user_agents import parse
 from rest_framework import serializers
 
-from general.functions import get_client_ip, is_valid_uuid
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from general.functions import get_client_ip, is_valid_uuid
 
 
 class SignupSerializer(serializers.Serializer):
