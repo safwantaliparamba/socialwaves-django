@@ -53,10 +53,10 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         session_id = attrs.get('session_id')
 
-        if not User.objects.filter(email=email).exists():
+        if not User.objects.filter(email=email, is_deleted=False).exists():
             raise serializers.ValidationError({"email":"Email not found"})
         else:
-            user:User = User.objects.filter(email=email).latest("date_joined")
+            user:User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
 
             if not user.is_email_verified:
                 raise serializers.ValidationError({"email":"Please verify your email address"})
