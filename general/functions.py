@@ -96,3 +96,9 @@ def resize_image(image: bytes | str, size: tuple = (30, 30)):
     resized_image.thumbnail(size)
 
     return resized_image
+
+
+def is_ajax(request:HttpRequest)-> bool:
+    # navigate - normal http request
+    # cors - ajax request
+    return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"

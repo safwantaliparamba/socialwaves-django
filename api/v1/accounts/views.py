@@ -12,11 +12,14 @@ from general.http import HttpRequest
 from general.functions import is_valid_uuid
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from general.decorators import session_required
 from api.v1.accounts.serializers import SignupSerializer, LoginSerializer
 from api.v1.general.functions import generate_serializer_errors, send_email
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
+@session_required()
 def app(request: HttpRequest):
     session_id = request.GET.get('session_id')
     user: User = request.user
@@ -129,6 +132,7 @@ def login(request: HttpRequest):
 
 
 @api_view(["POST"])
+@session_required()
 def sign_out(request: HttpRequest, session_id):
     user = request.user
 
@@ -157,3 +161,4 @@ def sign_out(request: HttpRequest, session_id):
         }
 
     return Response(response_data, status=status.HTTP_200_OK)
+
