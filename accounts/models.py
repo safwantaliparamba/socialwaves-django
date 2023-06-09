@@ -11,6 +11,17 @@ from general.middlewares import RequestMiddleware
 from general.functions import random_password,get_auto_id,generate_unique_id
 
 
+PROFILE_TYPE = (
+    ("private","Private"),
+    ("public","Public"),
+)
+
+MEMBERSHIP_TYPE = (
+    ("free_tier","Free Tier"),
+    ("pro","Pro"),
+)
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
 
@@ -32,16 +43,22 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=128,null=True, blank=True,unique=True)
-    name = models.CharField(max_length=128,null=True,blank=True)
+    # mandatory fields
     email = models.EmailField(unique=True)
     is_email_verified = models.BooleanField(default=False)
-    is_TFA_activated = models.BooleanField(default=False) # two factor authentication
-    image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)
     encrypted_password = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=128,null=True,blank=True)
+    # profile types - defaults
+    is_TFA_activated = models.BooleanField(default=False) # two factor authentication
+    profile_type = models.CharField(max_length=255,choices=PROFILE_TYPE, default='public')
+    membership_type = models.CharField(max_length=255,choices=MEMBERSHIP_TYPE, default='free_tier')
+    # optional fields
     bio = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
     date_updated = models.DateTimeField(null=True, blank=True, auto_now=True)
+    username = models.CharField(max_length=128,null=True, blank=True,unique=True)
+    image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)
+
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
