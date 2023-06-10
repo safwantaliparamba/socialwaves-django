@@ -102,3 +102,14 @@ def is_ajax(request:HttpRequest)-> bool:
     # navigate - normal http request
     # cors - ajax request
     return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"
+
+
+def getDomain(request: HttpRequest):
+    protocol = "http://"
+
+    if request.is_secure():
+        protocol = "https://"
+
+    host = request.get_host()
+
+    return protocol + host

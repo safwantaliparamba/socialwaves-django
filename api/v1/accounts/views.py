@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from general.http import HttpRequest
-from general.functions import is_valid_uuid
+from general.functions import is_valid_uuid, getDomain
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
@@ -60,9 +60,11 @@ def signup(request: HttpRequest):
         user = serialized.save()
 
         encrypted_user_id = encrypt(user.id)
+        domain = getDomain(request)
+
         context = {
             "user": user.name,
-            "activation_link": f"http://127.0.0.1:8000/api/v1/accounts/email/confirm/{encrypted_user_id}/"
+            "activation_link": f"{domain}/api/v1/accounts/email/confirm/{encrypted_user_id}/"
         }
 
         verification_email_template = render_to_string(
@@ -101,13 +103,12 @@ def email_confirmation(request: HttpRequest, token):
     decrypted_user_id = decrypt(token)
 
     if is_valid_uuid(decrypted_user_id) and User.objects.filter(id=decrypted_user_id, is_deleted=False).exists():
-        user: User = User.objects.filter(
-            id=decrypted_user_id, is_deleted=False).latest('date_joined')
+        user: User = User.objects.filter(id=decrypted_user_id, is_deleted=False).latest('date_joined')
 
         user.is_email_verified = True
         user.save()
 
-        return redirect(f"{settings.CLIENT_DOMAIN}/")
+        return redirect(f"{settings.CLIENT_DOMAIN}/sign-in/")
 
     return Response("User not found")
 
@@ -162,3 +163,8 @@ def sign_out(request: HttpRequest, session_id):
 
     return Response(response_data, status=status.HTTP_200_OK)
 
+
+@api_view(["GET"])
+@session_required()
+def profile(request: HttpRequest,username):
+    pass

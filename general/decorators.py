@@ -24,10 +24,8 @@ def group_required(group_names):
                         # return HttpResponse(json.dumps(response_data), content_type='application/javascript')
                         return Response(response_data)
                     else:
-                        context = {
-                            "title": "Permission Denied"
-                        }
-                        return HttpResponse('<h1>Permission Denied</h1>')
+                        title= "Permission Denied"
+                        return HttpResponse(f'<h1>{title}</h1>')
 
             return view_method(request, *args, **kwargs)
 
