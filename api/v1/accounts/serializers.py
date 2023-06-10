@@ -1,7 +1,7 @@
 import json
 import requests
 import geocoder
-# from pprint import pprint
+from pprint import pprint
 
 from django.db.models import Q
 from django.conf import settings
@@ -13,21 +13,27 @@ from rest_framework import serializers
 
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
-from general.functions import get_client_ip, is_valid_uuid
+from general.functions import get_client_ip, is_valid_uuid, getDomain
 
 
 class SignupSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=128,min_length=4,error_messages={'required':'Please enter your name'})
     email = serializers.EmailField(error_messages={'required':'Please enter your email address',"invalid":"Please enter a valid email address"})
     password = serializers.CharField(max_length=18,error_messages={'required':'Please enter your password'})
+    confirm_password = serializers.CharField(max_length=18, error_messages={'required':'Please enter your confirmed password'})
 
     def validate(self, attrs):
         super().validate(attrs)
 
         email = attrs.get('email')
+        password = attrs.get('password')
+        confirmed_password = attrs.get('confirmed_password')
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError({"email":"Email already exists"})
+        
+        if password != confirmed_password:
+            raise serializers.ValidationError({"password":"passwords are incorrect"})
 
         return attrs
     
@@ -87,13 +93,7 @@ class LoginSerializer(serializers.Serializer):
             "password": password,
         }
 
-        protocol = "http://"
-
-        if request.is_secure():
-            protocol = "https://"
-
-        host = request.get_host()
-        url = protocol + host + "/api/v1/accounts/token/"
+        url = getDomain(request) + "/api/v1/accounts/token/"
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
 
@@ -167,6 +167,7 @@ class LoginSerializer(serializers.Serializer):
                     "session_id": user_session.id,
                 }       
             }
+        pprint(response)
         return {
                 "statusCode":6001,
                 "data":{
@@ -174,3 +175,5 @@ class LoginSerializer(serializers.Serializer):
                     "message": "Token generation failed"
                 }       
             }
+    
+    
