@@ -37,6 +37,7 @@ def app(request: HttpRequest):
                 "email": user.email,
                 "username": user.username,
                 "name": user.name,
+                "is_pro_member": False,     # set it up
             }
         }
     else:    
