@@ -9,10 +9,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 from general.http import HttpRequest
-from general.functions import is_valid_uuid, getDomain
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
+from general.functions import is_valid_uuid, getDomain
 from api.v1.accounts.serializers import SignupSerializer, LoginSerializer
 from api.v1.general.functions import generate_serializer_errors, send_email
 
