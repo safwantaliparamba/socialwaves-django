@@ -80,7 +80,7 @@ def is_valid_uuid(value):
         return False
 
 
-def get_client_ip(request: HttpRequest):
+def get_client_ip(request: HttpRequest)-> str:
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 
     if x_forwarded_for:
@@ -104,7 +104,7 @@ def is_ajax(request:HttpRequest)-> bool:
     return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"
 
 
-def getDomain(request: HttpRequest):
+def getDomain(request: HttpRequest)-> str:
     protocol = "http://"
 
     if request.is_secure():

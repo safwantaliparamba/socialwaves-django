@@ -16,6 +16,23 @@ from general.encryptions import encrypt, decrypt
 from general.functions import get_client_ip, is_valid_uuid, getDomain
 
 
+def authenticate(email: str, password: str, request: HttpRequest):
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "email": email,
+        "password": password,
+    }
+
+    url = getDomain(request) + "/api/v1/accounts/token/"
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+    return response
+
+
 class SignupSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=128,min_length=4,error_messages={'required':'Please enter your name'})
     email = serializers.EmailField(error_messages={'required':'Please enter your email address',"invalid":"Please enter a valid email address"})
@@ -84,18 +101,7 @@ class LoginSerializer(serializers.Serializer):
 
         user: User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
         
-        headers = {
-            "Content-Type": "application/json"
-        }
-
-        data = {
-            "email": email,
-            "password": password,
-        }
-
-        url = getDomain(request) + "/api/v1/accounts/token/"
-        
-        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response: requests.Response = authenticate(email, password, request)
 
         if response.status_code == 200:
             is_main_exists = False
@@ -175,5 +181,3 @@ class LoginSerializer(serializers.Serializer):
                     "message": "Token generation failed"
                 }       
             }
-    
-    

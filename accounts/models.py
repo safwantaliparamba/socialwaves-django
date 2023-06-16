@@ -29,7 +29,10 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_('The Email field must be set.'))
         email = self.normalize_email(email)
         user: User = self.model(email=email, **extra_fields)
+        encrypted_password = encrypt(password)
+
         user.set_password(password)
+        user.encrypted_password = encrypted_password
         user.save(using=self._db)
 
         return user
@@ -38,7 +41,9 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
-        return self.create_user(email, password, **extra_fields)
+        encrypted_password = encrypt(password)
+
+        return self.create_user(email, password,encrypted_password=encrypted_password, **extra_fields)
     
 
 class User(AbstractUser):
@@ -49,7 +54,7 @@ class User(AbstractUser):
     encrypted_password = models.TextField(null=True, blank=True)
     name = models.CharField(max_length=128,null=True,blank=True)
     # profile types - defaults
-    is_TFA_activated = models.BooleanField(default=False) # two factor authentication
+    is_TFA_activated = models.BooleanField(default=False, verbose_name='Two Factor Authentication activated') # two factor authentication
     profile_type = models.CharField(max_length=255,choices=PROFILE_TYPE, default='public')
     membership_type = models.CharField(max_length=255,choices=MEMBERSHIP_TYPE, default='free_tier')
     # optional fields
