@@ -30,14 +30,21 @@ def app(request: HttpRequest):
         session.last_active = timezone.now()
         session.save()
 
+        is_pro_member = user.membership_type == "pro"
+        notification_count = 129
+        bookmark_count = 2
+
+
         response_data = {
             "statusCode": 6000,
             "data": {
                 "title": "Success",
+                "name": user.name,
                 "email": user.email,
                 "username": user.username,
-                "name": user.name,
-                "is_pro_member": False,     # set it up
+                "is_pro_member": is_pro_member,              # set it up
+                "bookmark_count": bookmark_count,            # set it up
+                "notification_count":notification_count,     # set it up
             }
         }
     else:    

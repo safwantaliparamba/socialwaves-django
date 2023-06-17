@@ -1,7 +1,7 @@
 import json
 import requests
 import geocoder
-from pprint import pprint
+# from pprint import pprint
 
 from django.db.models import Q
 from django.conf import settings
@@ -161,6 +161,10 @@ class LoginSerializer(serializers.Serializer):
                     user_session.is_main = True
                     user_session.save()
 
+            is_pro_member = user.membership_type == "pro"
+            notification_count = 129
+            bookmark_count = 2
+
             return {
                 "statusCode":6000,
                 "data":{
@@ -171,9 +175,11 @@ class LoginSerializer(serializers.Serializer):
                     "refresh": response.json().get("refresh"),
                     "access": response.json().get("access"),
                     "session_id": user_session.id,
+                    "is_pro_member": is_pro_member,
+                    "bookmark_count": bookmark_count,
+                    "notification_count": notification_count,
                 }       
             }
-        pprint(response)
         return {
                 "statusCode":6001,
                 "data":{
