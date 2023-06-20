@@ -5,9 +5,6 @@ from django.views.static import serve
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-# from general import cron
-
-# django_cron.autodiscover()
 
 urlpatterns = [
     path('chief/', admin.site.urls), #django admin urls
