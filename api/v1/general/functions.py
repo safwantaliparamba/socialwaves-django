@@ -2,13 +2,16 @@ import base64
 
 from django.core.files.base import ContentFile
 
+from general.http import HttpRequest
 from mailqueue.models import MailerMessage
-from general.functions import generate_unique_id,randomnumber
+from general.functions import generate_unique_id, randomnumber, getDomain
 
 
 """
 To get serializer errors from validation errors
 """
+
+
 def generate_serializer_errors(args):
     message = ""
     for key, values in args.items():
@@ -53,7 +56,7 @@ def send_email(to_address, subject, content, html_content, attachment=None, atta
 #     return username
 
 
-def convert_base64_image_to_image(base64_image:str,name:str=None):
+def convert_base64_image_to_image(base64_image: str, name: str = None):
     """
          converting base64 image into normal image type
     """
@@ -66,3 +69,9 @@ def convert_base64_image_to_image(base64_image:str,name:str=None):
     final_image = ContentFile(base64.b64decode(imgstr), name=f'{name}.{ext}')
 
     return final_image
+
+
+def generate_image(request: HttpRequest, image: str) -> str:
+    host = getDomain(request)
+
+    return f"{host}/media/{image}"

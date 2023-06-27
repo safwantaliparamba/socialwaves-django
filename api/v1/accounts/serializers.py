@@ -13,8 +13,8 @@ from rest_framework import serializers
 
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from api.v1.general.functions import generate_image
 from general.functions import get_client_ip, is_valid_uuid, getDomain
-
 
 def authenticate(email: str, password: str, request: HttpRequest):
     headers = {
@@ -44,12 +44,14 @@ class SignupSerializer(serializers.Serializer):
 
         email = attrs.get('email')
         password = attrs.get('password')
-        confirmed_password = attrs.get('confirmed_password')
+        confirmed_password = attrs.get('confirm_password')
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError({"email":"Email already exists"})
         
         if password != confirmed_password:
+            print(password)
+            print(confirmed_password)
             raise serializers.ValidationError({"password":"passwords are incorrect"})
 
         return attrs
@@ -67,14 +69,12 @@ class SignupSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(error_messages={'required':'Please enter your email address',"invalid":"Please enter a valid email address"})
     password = serializers.CharField(max_length=18, error_messages={'required':'Please enter your password'})
-    session_id = serializers.CharField(max_length=255, allow_null=True, allow_blank=True)
+    # session_id = serializers.CharField(max_length=255, allow_null=True, allow_blank=True)
 
     def validate(self, attrs):
-        # super().validate(attrs)
-
         email = attrs.get('email')
         password = attrs.get('password')
-        session_id = attrs.get('session_id')
+        # session_id = attrs.get('session_id')
 
         if not User.objects.filter(email=email, is_deleted=False).exists():
             raise serializers.ValidationError({"email":"Email not found"})
@@ -87,8 +87,8 @@ class LoginSerializer(serializers.Serializer):
                 if not decrypt(user.encrypted_password) == password:
                     raise serializers.ValidationError({"password":"Incorrect password"})
 
-        if session_id and not is_valid_uuid(session_id):
-            raise serializers.ValidationError({"session_id":"Session id is not a valid uuid"})
+        # if session_id and not is_valid_uuid(session_id):
+        #     raise serializers.ValidationError({"session_id":"Session id is not a valid uuid"})
 
         return attrs
     
@@ -97,7 +97,7 @@ class LoginSerializer(serializers.Serializer):
 
         email = self.validated_data.get("email")
         password = self.validated_data.get("password")
-        session_id = self.validated_data.get("session_id")
+        # session_id = self.validated_data.get("session_id")
 
         user: User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
         
@@ -112,58 +112,53 @@ class LoginSerializer(serializers.Serializer):
             if user.sessions.filter(is_main=True,is_active=True,is_deleted=False).exists():
                 is_main_exists = True
 
-            if session_id and UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).exists():
-                user_session = UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).latest("date_added")
+            # if session_id and UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).exists():
+            #     user_session = UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).latest("date_added")
 
-                if not is_main_exists:
-                    user_session.is_main = True
+            #     if not is_main_exists:
+            #         user_session.is_main = True
 
-                user_session.last_login = timezone.now()
+            #     user_session.last_login = timezone.now()
+            #     user_session.save()
+
+            # else:
+            ip = None
+            browser_name = user_agent_data.browser.family
+            browser_version = user_agent_data.browser.version_string
+            system = f"{user_agent_data.os.family} {user_agent_data.os.version_string}"
+
+            if settings.DEBUG:
+                ip = settings.SYSTEM_IP
+            else:
+                ip = get_client_ip(request)
+
+            location = geocoder.ip(ip)
+
+            city = location.city
+            state = location.state
+            country = location.country
+
+            user_session = UserSession.objects.create(
+                ip= ip,
+                user= user,
+                city= city,
+                state= state,
+                system=  system,
+                country= country,
+                browser= browser_name,
+                is_pc= user_agent_data.is_pc,
+                browser_version= browser_version,
+                is_mobile= user_agent_data.is_mobile,
+            )
+
+            if not is_main_exists:
+                user_session.is_main = True
                 user_session.save()
 
-            else:
-                ip = None
-                browser_name = user_agent_data.browser.family
-                browser_version = user_agent_data.browser.version_string
-                system = f"{user_agent_data.os.family} {user_agent_data.os.version_string}"
-
-                if settings.DEBUG:
-                    ip = settings.SYSTEM_IP
-                else:
-                    ip = get_client_ip(request)
-
-                # res = requests.get(f"https://ipapi.co/{ip}/json/").json()
-
-                # city = res.get('city')
-                # state = res.get('region')
-                # country = res.get('country_name')
-
-                location = geocoder.ip(ip)
-
-                city = location.city
-                state = location.state
-                country = location.country
-
-                user_session = UserSession.objects.create(
-                    ip= ip,
-                    user= user,
-                    city= city,
-                    state= state,
-                    system=  system,
-                    country= country,
-                    browser= browser_name,
-                    is_pc= user_agent_data.is_pc,
-                    browser_version= browser_version,
-                    is_mobile= user_agent_data.is_mobile,
-                )
-
-                if not is_main_exists:
-                    user_session.is_main = True
-                    user_session.save()
-
-            is_pro_member = user.membership_type == "pro"
-            notification_count = 129
             bookmark_count = 2
+            notification_count = 129
+            is_pro_member = user.membership_type == "pro"
+            user_image = generate_image(request,user.image) if user.image else f"https://via.placeholder.com/300/808080/111111?text={user.name[0]}"
 
             return {
                 "statusCode":6000,
@@ -178,6 +173,7 @@ class LoginSerializer(serializers.Serializer):
                     "is_pro_member": is_pro_member,
                     "bookmark_count": bookmark_count,
                     "notification_count": notification_count,
+                    "image": user_image,
                 }       
             }
         return {

@@ -14,7 +14,7 @@ from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
 from general.functions import is_valid_uuid, getDomain
 from api.v1.accounts.serializers import SignupSerializer, LoginSerializer
-from api.v1.general.functions import generate_serializer_errors, send_email
+from api.v1.general.functions import generate_serializer_errors, send_email, generate_image
 
 
 @api_view(["GET"])
@@ -30,9 +30,10 @@ def app(request: HttpRequest):
         session.last_active = timezone.now()
         session.save()
 
-        is_pro_member = user.membership_type == "pro"
-        notification_count = 129
         bookmark_count = 2
+        notification_count = 129
+        is_pro_member = user.membership_type == "pro"
+        user_image = generate_image(request,user.image) if user.image else f"https://via.placeholder.com/25/808080/111111?text={user.name[0]}"
 
 
         response_data = {
@@ -40,11 +41,12 @@ def app(request: HttpRequest):
             "data": {
                 "title": "Success",
                 "name": user.name,
+                "image":user_image,
                 "email": user.email,
                 "username": user.username,
-                "is_pro_member": is_pro_member,              # set it up
-                "bookmark_count": bookmark_count,            # set it up
-                "notification_count":notification_count,     # set it up
+                "is_pro_member": is_pro_member,
+                "bookmark_count": bookmark_count,
+                "notification_count":notification_count,
             }
         }
     else:    
