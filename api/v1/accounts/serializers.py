@@ -13,8 +13,8 @@ from rest_framework import serializers
 
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from api.v1.general.functions import generate_image
 from general.functions import get_client_ip, is_valid_uuid, getDomain
-
 
 def authenticate(email: str, password: str, request: HttpRequest):
     headers = {
@@ -69,7 +69,7 @@ class SignupSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(error_messages={'required':'Please enter your email address',"invalid":"Please enter a valid email address"})
     password = serializers.CharField(max_length=18, error_messages={'required':'Please enter your password'})
-    session_id = serializers.CharField(max_length=255, allow_null=True, allow_blank=True)
+    # session_id = serializers.CharField(max_length=255, allow_null=True, allow_blank=True)
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -132,12 +132,6 @@ class LoginSerializer(serializers.Serializer):
             else:
                 ip = get_client_ip(request)
 
-            # res = requests.get(f"https://ipapi.co/{ip}/json/").json()
-
-            # city = res.get('city')
-            # state = res.get('region')
-            # country = res.get('country_name')
-
             location = geocoder.ip(ip)
 
             city = location.city
@@ -161,9 +155,10 @@ class LoginSerializer(serializers.Serializer):
                 user_session.is_main = True
                 user_session.save()
 
-            is_pro_member = user.membership_type == "pro"
-            notification_count = 129
             bookmark_count = 2
+            notification_count = 129
+            is_pro_member = user.membership_type == "pro"
+            user_image = generate_image(request,user.image) if user.image else f"https://via.placeholder.com/300/808080/111111?text={user.name[0]}"
 
             return {
                 "statusCode":6000,
@@ -178,6 +173,7 @@ class LoginSerializer(serializers.Serializer):
                     "is_pro_member": is_pro_member,
                     "bookmark_count": bookmark_count,
                     "notification_count": notification_count,
+                    "image": user_image,
                 }       
             }
         return {
