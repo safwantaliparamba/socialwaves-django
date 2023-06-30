@@ -4,6 +4,7 @@ from django.core.files.base import ContentFile
 
 from general.http import HttpRequest
 from mailqueue.models import MailerMessage
+from general.middlewares import RequestMiddleware
 from general.functions import generate_unique_id, randomnumber, getDomain
 
 
@@ -71,7 +72,8 @@ def convert_base64_image_to_image(base64_image: str, name: str = None):
     return final_image
 
 
-def generate_image(request: HttpRequest, image: str) -> str:
-    host = getDomain(request)
+def generate_image(image: str) -> str:
+    request = RequestMiddleware(get_response=None)
+    request:HttpRequest = request.thread_local.current_request
 
-    return f"{host}/media/{image}"
+    return request.build_absolute_uri(f"/media/{image}")
