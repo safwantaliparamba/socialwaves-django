@@ -33,7 +33,7 @@ def app(request: HttpRequest):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(request,user.image) if user.image else f"https://via.placeholder.com/25/808080/111111?text={user.name[0]}"
+        user_image = generate_image(user.image) if user.image else False
 
 
         response_data = {
