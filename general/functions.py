@@ -99,8 +99,11 @@ def resize_image(image: bytes | str, size: tuple = (30, 30)):
 
 
 def is_ajax(request:HttpRequest)-> bool:
-    # navigate - normal http request
-    # cors - ajax request
+    """
+    ## To find the request is from ajax or normal http request
+    - navigate - normal http request
+    - cors - ajax request
+    """
     return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"
 
 

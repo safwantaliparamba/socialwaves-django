@@ -14,8 +14,10 @@ urlpatterns = [
     # auth
     re_path(r'^sign-up/$',views.signup),
     re_path(r'^sign-in/$',views.login),
+    re_path(r'^sign-in-with-google/$',views.google_authentication),
     re_path(r'^sign-out/(?P<session_id>.*)/$',views.sign_out),
     re_path(r'^email/confirm/(?P<token>.*)/$',views.email_confirmation),
+
     # user apis
     re_path(r'accounts/^(?P<username>.*)/$', views.profile),
 
