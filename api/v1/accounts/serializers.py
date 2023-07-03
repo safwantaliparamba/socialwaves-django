@@ -13,10 +13,14 @@ from rest_framework import serializers
 
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
+from general.middlewares import RequestMiddleware
 from api.v1.general.functions import generate_image
-from general.functions import get_client_ip, is_valid_uuid, getDomain
+from general.functions import get_client_ip, getDomain,random_password
 
-def authenticate(email: str, password: str, request: HttpRequest):
+def authenticate(email: str, password: str):
+    request = RequestMiddleware(get_response=None)
+    request: HttpRequest = request.thread_local.current_request
+
     headers = {
         "Content-Type": "application/json"
     }
@@ -29,8 +33,88 @@ def authenticate(email: str, password: str, request: HttpRequest):
     url = getDomain(request) + "/api/v1/accounts/token/"
     
     response = requests.post(url, headers=headers, data=json.dumps(data))
+    user: User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
 
-    return response
+    if response.status_code == 200:
+        is_main_exists = False
+        user_session: UserSession | None = None 
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent_data = parse(user_agent)
+
+        if user.sessions.filter(is_main=True,is_active=True,is_deleted=False).exists():
+            is_main_exists = True
+
+        # if session_id and UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).exists():
+        #     user_session = UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).latest("date_added")
+
+        #     if not is_main_exists:
+        #         user_session.is_main = True
+
+        #     user_session.last_login = timezone.now()
+        #     user_session.save()
+
+        # else:
+        ip = None
+        browser_name = user_agent_data.browser.family
+        browser_version = user_agent_data.browser.version_string
+        system = f"{user_agent_data.os.family} {user_agent_data.os.version_string}"
+
+        if settings.DEBUG:
+            ip = settings.SYSTEM_IP
+        else:
+            ip = get_client_ip(request)
+
+        location = geocoder.ip(ip)
+
+        city = location.city
+        state = location.state
+        country = location.country
+
+        user_session = UserSession.objects.create(
+            ip= ip,
+            user= user,
+            city= city,
+            state= state,
+            system=  system,
+            country= country,
+            browser= browser_name,
+            is_pc= user_agent_data.is_pc,
+            browser_version= browser_version,
+            is_mobile= user_agent_data.is_mobile,
+        )
+
+        if not is_main_exists:
+            user_session.is_main = True
+            user_session.save()
+
+        bookmark_count = 2
+        notification_count = 129
+        is_pro_member = user.membership_type == "pro"
+        user_image = generate_image(user.image) if user.image else False
+
+        return {
+            "statusCode":6000,
+            "data":{
+                "title":"Success",
+                "email":user.email,
+                "name":user.name,
+                "username":user.username,
+                "refresh": response.json().get("refresh"),
+                "access": response.json().get("access"),
+                "session_id": user_session.id,
+                "is_pro_member": is_pro_member,
+                "bookmark_count": bookmark_count,
+                "notification_count": notification_count,
+                "image": user_image,
+            }       
+        }
+    return {
+            "statusCode":6001,
+            "data":{
+                "title":"Failed",
+                "message": "Token generation failed"
+            }       
+        }
 
 
 class SignupSerializer(serializers.Serializer):
@@ -61,7 +145,7 @@ class SignupSerializer(serializers.Serializer):
         password = self.validated_data.get("password")
         name = self.validated_data.get("name")
         
-        profile = User.objects.create_user(name=name,email=email,password=password,encrypted_password=encrypt(password),username=email)
+        profile = User.objects.create_user(name=name,email=email,password=password,username=email)
 
         return profile
     
@@ -101,85 +185,37 @@ class LoginSerializer(serializers.Serializer):
 
         user: User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
         
-        response: requests.Response = authenticate(email, password, request)
+        response = authenticate(email, password)
 
-        if response.status_code == 200:
-            is_main_exists = False
-            user_session: UserSession | None = None 
-            user_agent = request.META.get('HTTP_USER_AGENT', '')
-            user_agent_data = parse(user_agent)
+        return response
+    
 
-            if user.sessions.filter(is_main=True,is_active=True,is_deleted=False).exists():
-                is_main_exists = True
+class GoogleAuthenticationSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=128)
+    name  = serializers.CharField(max_length=128)
 
-            # if session_id and UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).exists():
-            #     user_session = UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).latest("date_added")
+    def save(self, **kwargs):
+        name  = self.validated_data.get("name")
+        email = self.validated_data.get("email")
 
-            #     if not is_main_exists:
-            #         user_session.is_main = True
-
-            #     user_session.last_login = timezone.now()
-            #     user_session.save()
-
-            # else:
-            ip = None
-            browser_name = user_agent_data.browser.family
-            browser_version = user_agent_data.browser.version_string
-            system = f"{user_agent_data.os.family} {user_agent_data.os.version_string}"
-
-            if settings.DEBUG:
-                ip = settings.SYSTEM_IP
-            else:
-                ip = get_client_ip(request)
-
-            location = geocoder.ip(ip)
-
-            city = location.city
-            state = location.state
-            country = location.country
-
-            user_session = UserSession.objects.create(
-                ip= ip,
-                user= user,
-                city= city,
-                state= state,
-                system=  system,
-                country= country,
-                browser= browser_name,
-                is_pc= user_agent_data.is_pc,
-                browser_version= browser_version,
-                is_mobile= user_agent_data.is_mobile,
+        if not User.objects.filter(email=email,is_deleted=False).exists():
+            password = random_password(8)
+            
+            user = User.objects.create_user(
+                name=name,
+                email=email,
+                username=email,
+                password=password,
+                is_email_verified=True,
             )
 
-            if not is_main_exists:
-                user_session.is_main = True
-                user_session.save()
+            response = authenticate(email, password)
 
-            bookmark_count = 2
-            notification_count = 129
-            is_pro_member = user.membership_type == "pro"
-            user_image = generate_image(user.image) if user.image else False
+            return response
+        else:
+            user: User = User.objects.filter(email=email,is_deleted=False).latest("date_joined")
+            decrypted_password = decrypt(user.encrypted_password)
 
-            return {
-                "statusCode":6000,
-                "data":{
-                    "title":"Success",
-                    "email":user.email,
-                    "name":user.name,
-                    "username":user.username,
-                    "refresh": response.json().get("refresh"),
-                    "access": response.json().get("access"),
-                    "session_id": user_session.id,
-                    "is_pro_member": is_pro_member,
-                    "bookmark_count": bookmark_count,
-                    "notification_count": notification_count,
-                    "image": user_image,
-                }       
-            }
-        return {
-                "statusCode":6001,
-                "data":{
-                    "title":"Failed",
-                    "message": "Token generation failed"
-                }       
-            }
+            response = authenticate(email, decrypted_password)
+
+            return response

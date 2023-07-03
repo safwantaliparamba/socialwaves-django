@@ -13,8 +13,8 @@ from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
 from general.functions import is_valid_uuid, getDomain
-from api.v1.accounts.serializers import SignupSerializer, LoginSerializer
 from api.v1.general.functions import generate_serializer_errors, send_email, generate_image
+from api.v1.accounts.serializers import SignupSerializer, LoginSerializer, GoogleAuthenticationSerializer
 
 
 @api_view(["GET"])
@@ -55,6 +55,25 @@ def app(request: HttpRequest):
             "data": {
                 "title": "Failed",
                 "message": "session not found",
+            }
+        }
+
+    return Response(response_data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def google_authentication(request: HttpRequest):
+    serialized = GoogleAuthenticationSerializer(data=request.data)
+
+    if serialized.is_valid():
+        response_data = serialized.save()
+    else:
+        response_data = {
+            "statusCode": 6001,
+            "data": {
+                "title": "Validation error",
+                "message": generate_serializer_errors(serialized._errors)
             }
         }
 
