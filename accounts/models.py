@@ -1,14 +1,19 @@
+import os
 import uuid
+from PIL import Image
+from io import BytesIO
 
 from django.db import models
+from django.core.files import File
 from django.http.request import HttpRequest
+from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group
 
 from general.models import BaseModel
 from general.encryptions import encrypt
 from general.middlewares import RequestMiddleware
-from general.functions import random_password, get_auto_id, generate_unique_id
+from general.functions import random_password, get_auto_id, generate_unique_id, resize
 
 
 PROFILE_TYPE = (
@@ -63,6 +68,7 @@ class User(AbstractUser):
     date_updated = models.DateTimeField(null=True, blank=True, auto_now=True)
     username = models.CharField(max_length=128,null=True, blank=True,unique=True)
     image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)
+    thumbnail_image = models.ImageField(upload_to="accounts/profile/thumb/", null=True, blank=True)
 
     
     USERNAME_FIELD = 'email'
@@ -78,6 +84,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    def save(self, *args, **kwargs):
+
+        if not self._state.adding:
+            old_instance: User = User.objects.get(pk=self.pk)
+            old_image = old_instance.image
+
+            if self.image != old_image:
+                resize(self.image,(30,30),self.thumbnail_image)
+
+        return super(User, self).save(*args, **kwargs)
     
 
 
