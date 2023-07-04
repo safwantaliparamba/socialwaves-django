@@ -162,7 +162,7 @@ def login(request: HttpRequest):
 
 
 @api_view(["POST"])
-@session_required()
+# @permission_classes([AllowAny])
 def sign_out(request: HttpRequest, session_id):
     user = request.user
 

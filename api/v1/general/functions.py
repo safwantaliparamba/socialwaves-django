@@ -2,6 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 
+from accounts.models import User
 from general.http import HttpRequest
 from mailqueue.models import MailerMessage
 from general.middlewares import RequestMiddleware
@@ -47,14 +48,6 @@ def send_email(to_address, subject, content, html_content, attachment=None, atta
     return new_message.sent
 
 
-# def generate_unique_username(username):
-
-#     if User.objects.filter(username=username).exists():
-#         username = generate_unique_id(20)
-
-#         generate_unique_username(username)
-
-#     return username
 
 
 def convert_base64_image_to_image(base64_image: str, name: str = None):
@@ -77,3 +70,13 @@ def generate_image(image: str) -> str:
     request:HttpRequest = request.thread_local.current_request
 
     return request.build_absolute_uri(f"/media/{image}")
+
+
+def generate_unique_username(username: str | None = generate_unique_id(12)):
+    """It returns unique username as per accounts.User model"""
+
+    if User.objects.filter(username=username,is_deleted=False).exists():
+        username = generate_unique_id(12)
+        generate_unique_username(username)
+
+    return username

@@ -8,7 +8,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager, Group
 from general.models import BaseModel
 from general.encryptions import encrypt
 from general.middlewares import RequestMiddleware
-from general.functions import random_password,get_auto_id,generate_unique_id
+from general.functions import random_password, get_auto_id, generate_unique_id
 
 
 PROFILE_TYPE = (
