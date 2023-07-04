@@ -1,11 +1,12 @@
 from django.db import models
 
-from general.models import BaseModel
 from accounts.models import User
+from general.models import BaseModel
+from general.functions import resize
 
 
 class Post(BaseModel):
-    caption = models.TextField()
+    caption = models.TextField(null=True,blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
 
     class Meta:
@@ -19,7 +20,8 @@ class Post(BaseModel):
     
 
 class PostMedia(BaseModel):
-    media = models.FileField(upload_to="posts/posts/")
+    media = models.FileField(upload_to="posts/posts/", null=True, blank=True)
+    thumb = models.FileField(upload_to="posts/thumb/", null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media')
 
     class Meta:
@@ -27,6 +29,14 @@ class PostMedia(BaseModel):
         verbose_name = 'post_media'
         verbose_name_plural = 'post_media'
         ordering = ('-date_added',)
+
+    def save(self, *args, **kwargs):
+
+        if self.media:
+            name,file = resize(self.media,(30,30))
+            self.thumb.save(name, file, save=False)
+
+        return super(PostMedia, self).save(*args, **kwargs)
 
     def __str__(self):
         return str(self.post)

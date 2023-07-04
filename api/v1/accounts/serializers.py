@@ -14,10 +14,18 @@ from rest_framework import serializers
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from general.middlewares import RequestMiddleware
-from api.v1.general.functions import generate_image
-from general.functions import get_client_ip, getDomain,random_password
+from api.v1.general.functions import generate_image, generate_unique_username
+from general.functions import (
+    get_client_ip,
+    getDomain,
+    random_password,
+)
+
 
 def authenticate(email: str, password: str):
+    """
+     returns authentication credentials using email and password
+    """
     request = RequestMiddleware(get_response=None)
     request: HttpRequest = request.thread_local.current_request
 
@@ -44,16 +52,6 @@ def authenticate(email: str, password: str):
         if user.sessions.filter(is_main=True,is_active=True,is_deleted=False).exists():
             is_main_exists = True
 
-        # if session_id and UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).exists():
-        #     user_session = UserSession.objects.filter(id=session_id, is_active=True,is_deleted=False).latest("date_added")
-
-        #     if not is_main_exists:
-        #         user_session.is_main = True
-
-        #     user_session.last_login = timezone.now()
-        #     user_session.save()
-
-        # else:
         ip = None
         browser_name = user_agent_data.browser.family
         browser_version = user_agent_data.browser.version_string
@@ -90,7 +88,7 @@ def authenticate(email: str, password: str):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(user.image) if user.image else False
+        user_image = generate_image(user.thumbnail_image) if user.thumbnail_image else False
 
         return {
             "statusCode":6000,
@@ -144,9 +142,16 @@ class SignupSerializer(serializers.Serializer):
         email = self.validated_data.get("email")
         password = self.validated_data.get("password")
         name = self.validated_data.get("name")
-        
-        profile = User.objects.create_user(name=name,email=email,password=password,username=email)
 
+        username = generate_unique_username()
+        
+        profile = User.objects.create_user(
+                name=name,
+                email=email,
+                password=password,
+                username=username
+            )
+        
         return profile
     
 
@@ -200,11 +205,12 @@ class GoogleAuthenticationSerializer(serializers.Serializer):
 
         if not User.objects.filter(email=email,is_deleted=False).exists():
             password = random_password(8)
+            username = generate_unique_username()
             
             user = User.objects.create_user(
                 name=name,
                 email=email,
-                username=email,
+                username=username,
                 password=password,
                 is_email_verified=True,
             )

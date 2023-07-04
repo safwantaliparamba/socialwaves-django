@@ -2,9 +2,13 @@ import uuid
 import random
 import string
 from PIL import Image
+from io import BytesIO
 from random import randint
 
+from django.db import models
+from django.core.files import File
 from django.http.request import HttpRequest
+from django.core.files.base import ContentFile
 
 
 def randomnumber(n):
@@ -91,18 +95,27 @@ def get_client_ip(request: HttpRequest)-> str:
     return ip
 
 
-def resize_image(image: bytes | str, size: tuple = (30, 30)):
-    resized_image = Image.open(image)
-    resized_image.thumbnail(size)
+def resize( imageField: models.ImageField | models.FileField, size:tuple):
+    im = Image.open(imageField)  # Catch original
+    source_image = im.convert('RGB')
+    source_image.thumbnail(size)  # Resize to size
+    output = BytesIO()
+    source_image.save(output, format='JPEG') # Save resize image to bytes
+    output.seek(0)
 
-    return resized_image
+    content_file = ContentFile(output.read())  # Read output and create ContentFile in memory
+    file = File(content_file)
+
+    random_name = f'{uuid.uuid4()}.jpeg'
+    
+    return (random_name,file)
 
 
 def is_ajax(request:HttpRequest)-> bool:
     """
     ## To find the request is from ajax or normal http request
     - navigate - normal http request
-    - cors - ajax request
+    - cors     - ajax request
     """
     return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"
 

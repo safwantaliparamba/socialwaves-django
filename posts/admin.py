@@ -3,14 +3,17 @@ from django.contrib import admin
 from posts.models import Post, PostMedia, PostReaction, Comment, CommentReaction, PostReach
 
 
-class PostMediaAdmin(admin.TabularInline):
-    model = PostMedia
+@admin.register(PostMedia)
+class PostMediaAdmin(admin.ModelAdmin):
+    list_display = ["id"]
 
-class PostReactionAdmin(admin.TabularInline):
-    model = PostReaction
+@admin.register(PostReaction)
+class PostReactionAdmin(admin.ModelAdmin):
+    list_display = ["id"]
 
-class PostReachAdmin(admin.TabularInline):
-    model = PostReach
+@admin.register(PostReach)
+class PostReachAdmin(admin.ModelAdmin):
+    list_display = ["id"]
 
 
 @admin.register(Post)
@@ -18,7 +21,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ['user', 'id', 'caption']
     list_filter = ['date_added', 'date_updated']
     list_display_links = ['id']
-    inlines = [PostMediaAdmin,PostReactionAdmin,PostReachAdmin]
+    # inlines = [PostMediaAdmin,PostReactionAdmin,PostReachAdmin]
     actions = ['temp_delete','undo_delete']
 
     def temp_delete(self, request, queryset):
