@@ -68,7 +68,7 @@ class User(AbstractUser):
     date_updated = models.DateTimeField(null=True, blank=True, auto_now=True)
     username = models.CharField(max_length=128,null=True, blank=True,unique=True)
     image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)
-    thumbnail_image = models.ImageField(upload_to="accounts/profile/thumb/", null=True, blank=True)
+    thumbnail_image = models.ImageField(upload_to="accounts/thumb/", null=True, blank=True)
 
     
     USERNAME_FIELD = 'email'
@@ -87,12 +87,13 @@ class User(AbstractUser):
     
     def save(self, *args, **kwargs):
 
-        if not self._state.adding:
+        if not self._state.adding and self.image:
             old_instance: User = User.objects.get(pk=self.pk)
             old_image = old_instance.image
 
             if self.image != old_image:
-                resize(self.image,(30,30),self.thumbnail_image)
+                name,file = resize(self.image,(30,30))
+                self.thumbnail_image.save(name, file, save=False)
 
         return super(User, self).save(*args, **kwargs)
     

@@ -33,7 +33,7 @@ def app(request: HttpRequest):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(user.image) if user.image else False
+        user_image = generate_image(user.thumbnail_image) if user.thumbnail_image else False
 
 
         response_data = {

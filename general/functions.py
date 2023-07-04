@@ -95,7 +95,7 @@ def get_client_ip(request: HttpRequest)-> str:
     return ip
 
 
-def resize( imageField: models.ImageField, size:tuple, outputField: models.ImageField):
+def resize( imageField: models.ImageField | models.FileField, size:tuple):
     im = Image.open(imageField)  # Catch original
     source_image = im.convert('RGB')
     source_image.thumbnail(size)  # Resize to size
@@ -107,18 +107,15 @@ def resize( imageField: models.ImageField, size:tuple, outputField: models.Image
     file = File(content_file)
 
     random_name = f'{uuid.uuid4()}.jpeg'
-
-    if outputField:
-        outputField.save(random_name, file, save=False)
-    else:
-        imageField.save(random_name, file, save=False)
+    
+    return (random_name,file)
 
 
 def is_ajax(request:HttpRequest)-> bool:
     """
     ## To find the request is from ajax or normal http request
     - navigate - normal http request
-    - cors - ajax request
+    - cors     - ajax request
     """
     return request.META.get("HTTP_SEC_FETCH_MODE") == "cors"
 
