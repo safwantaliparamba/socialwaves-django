@@ -1,6 +1,7 @@
 import json
 import requests
 import geocoder
+import pycountry
 # from pprint import pprint
 
 from django.db.models import Q
@@ -66,7 +67,10 @@ def authenticate(email: str, password: str):
 
         city = location.city
         state = location.state
-        country = location.country
+        country_name =  pycountry.countries.get(alpha_2=location.country).name
+
+        user.country = country_name
+        user.save()
 
         user_session = UserSession.objects.create(
             ip= ip,
@@ -74,7 +78,7 @@ def authenticate(email: str, password: str):
             city= city,
             state= state,
             system=  system,
-            country= country,
+            country= country_name,
             browser= browser_name,
             is_pc= user_agent_data.is_pc,
             browser_version= browser_version,
@@ -225,3 +229,10 @@ class GoogleAuthenticationSerializer(serializers.Serializer):
             response = authenticate(email, decrypted_password)
 
             return response
+        
+
+class PublicProfileSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id","name","username","bio","country","gender","image"]
+        read_only_fields = ["id","email","country"]

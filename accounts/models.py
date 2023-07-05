@@ -51,6 +51,15 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password,encrypted_password=encrypted_password, **extra_fields)
     
 
+USER_PRONOUNS = [
+    ("don't_specify",   "Don't Specify"),
+    ("he/him",          "He/Him"),
+    ("she/her",         "She/Her"),
+    ("they/them",       "They/Them"),
+    ("other",           "Other")
+]
+
+
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # mandatory fields
@@ -58,13 +67,17 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     encrypted_password = models.TextField(null=True, blank=True)
     name = models.CharField(max_length=128,null=True,blank=True)
+    
     # profile types - defaults
     is_TFA_activated = models.BooleanField(default=False, verbose_name='Two Factor Authentication activated') # two factor authentication
     profile_type = models.CharField(max_length=255,choices=PROFILE_TYPE, default='public')
     membership_type = models.CharField(max_length=255,choices=MEMBERSHIP_TYPE, default='free_tier')
+   
     # optional fields
     bio = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
+    gender = models.CharField(max_length=255, null=True, blank=True,choices=USER_PRONOUNS,default="don't_specify")
+    country = models.CharField(max_length=255,null=True, blank=True)
     date_updated = models.DateTimeField(null=True, blank=True, auto_now=True)
     username = models.CharField(max_length=128,null=True, blank=True,unique=True)
     image = models.ImageField(upload_to="accounts/profile/", null=True, blank=True)

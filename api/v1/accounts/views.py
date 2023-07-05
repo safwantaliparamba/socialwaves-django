@@ -14,7 +14,12 @@ from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
 from general.functions import is_valid_uuid, getDomain
 from api.v1.general.functions import generate_serializer_errors, send_email, generate_image
-from api.v1.accounts.serializers import SignupSerializer, LoginSerializer, GoogleAuthenticationSerializer
+from api.v1.accounts.serializers import (
+    LoginSerializer,
+    SignupSerializer, 
+    GoogleAuthenticationSerializer,
+    PublicProfileSettingsSerializer
+)
 
 
 @api_view(["GET"])
@@ -195,5 +200,18 @@ def sign_out(request: HttpRequest, session_id):
 
 @api_view(["GET"])
 @session_required()
-def profile(request: HttpRequest,username):
-    pass
+def settings_public_profile(request: HttpRequest):
+    user: User = request.user
+    
+    serialized_instance = PublicProfileSettingsSerializer(user).data
+
+    response_data = {
+        "statusCode":6000,
+        "data":{
+            "data":serialized_instance,
+            "title":"Success",
+            "message":"Profile fetched successfully"
+        }
+    }
+
+    return Response(response_data,status=status.HTTP_200_OK)
