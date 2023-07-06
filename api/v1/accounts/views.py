@@ -14,7 +14,12 @@ from general.encryptions import encrypt, decrypt
 from general.decorators import session_required
 from general.functions import is_valid_uuid, getDomain
 from api.v1.general.functions import generate_serializer_errors, send_email, generate_image
-from api.v1.accounts.serializers import SignupSerializer, LoginSerializer, GoogleAuthenticationSerializer
+from api.v1.accounts.serializers import (
+    LoginSerializer,
+    SignupSerializer, 
+    GoogleAuthenticationSerializer,
+    PublicProfileSettingsSerializer
+)
 
 
 @api_view(["GET"])
@@ -33,7 +38,7 @@ def app(request: HttpRequest):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(user.thumbnail_image) if user.thumbnail_image else False
+        user_image = generate_image(user.thumbnail_image.url) if user.thumbnail_image else False
 
 
         response_data = {
@@ -195,5 +200,58 @@ def sign_out(request: HttpRequest, session_id):
 
 @api_view(["GET"])
 @session_required()
-def profile(request: HttpRequest,username):
-    pass
+def settings_public_profile(request: HttpRequest):
+    user: User = request.user
+    context = {
+        "request": request
+    }
+    serialized_instance = PublicProfileSettingsSerializer(user,context=context).data
+
+    response_data = {
+        "statusCode":6000,
+        "data":{
+            "data":serialized_instance,
+            "title":"Success",
+            "message":"Profile fetched successfully"
+        }
+    }
+
+    return Response(response_data,status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@session_required()
+def edit_public_profile(request: HttpRequest):
+    user: User = request.user
+
+    serialized = PublicProfileSettingsSerializer(data=request.data,instance=user,context={"request": request})
+
+    if serialized.is_valid():
+        instance: User = serialized.save()
+
+        thumbnail_image = generate_image(instance.thumbnail_image.url)
+        username = instance.username
+        name = instance.name
+
+        response_data = {
+            "statusCode": 6000,
+            "data":{
+                "data":{
+                    "thumbnail":thumbnail_image,
+                    "username":username,
+                    "name":name,
+                },
+                "title": "Success",
+                "message": "Success"
+            }
+        }
+    else:
+        response_data = {
+            "statusCode": 6001,
+            "data":{
+                "title": "Validation Error",
+                "message": generate_serializer_errors(serialized._errors)
+            }
+        }
+    
+    return Response(response_data)

@@ -8,7 +8,6 @@ from . import views
 app_name = 'api_v1_accounts'
  
 urlpatterns = [
-    # DRF Auth routes
     # base api to check user session and other informations
     re_path(r'^app/$',views.app), 
     # auth
@@ -17,9 +16,9 @@ urlpatterns = [
     re_path(r'^sign-in-with-google/$',views.google_authentication),
     re_path(r'^sign-out/(?P<session_id>.*)/$',views.sign_out),
     re_path(r'^email/confirm/(?P<token>.*)/$',views.email_confirmation),
-
-    # user apis
-    re_path(r'accounts/^(?P<username>.*)/$', views.profile),
+    # settings apis
+    re_path(r'settings/profile/$', views.settings_public_profile),
+    re_path(r'settings/profile/edit/$', views.edit_public_profile),
 
 
     #jwt auth routes
