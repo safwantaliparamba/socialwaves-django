@@ -15,7 +15,7 @@ from rest_framework import serializers
 from accounts.models import User, UserSession
 from general.encryptions import encrypt, decrypt
 from general.middlewares import RequestMiddleware
-from api.v1.general.functions import generate_image, generate_unique_username
+from api.v1.general.functions import generate_image, generate_unique_username,convert_base64_image_to_image
 from general.functions import (
     get_client_ip,
     getDomain,
@@ -92,7 +92,7 @@ def authenticate(email: str, password: str):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(user.thumbnail_image) if user.thumbnail_image else False
+        user_image = generate_image(user.thumbnail_image.url) if user.thumbnail_image else False
 
         return {
             "statusCode":6000,
@@ -232,7 +232,32 @@ class GoogleAuthenticationSerializer(serializers.Serializer):
         
 
 class PublicProfileSettingsSerializer(serializers.ModelSerializer):
+    cropped_image = serializers.CharField(max_length=100_000_000,write_only=True,allow_null=True, allow_blank=True)
+    gender = serializers.CharField(source='get_gender_display')
+
     class Meta:
         model = User
-        fields = ["id","name","username","bio","country","gender","image"]
-        read_only_fields = ["id","email","country"]
+        fields = ["id","name","username","bio","country","gender","image","cropped_image"]
+        read_only_fields = ["id","country","image"]
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        current_user_id = self.instance.id
+
+        current_user:User = User.objects.filter(id=current_user_id,is_deleted=False).latest("date_joined")
+
+        if username != current_user.username and User.objects.filter(username=username,is_deleted=False).exists():
+            raise serializers.ValidationError({"username":"username already exists"})
+
+        return super().validate(attrs)
+
+    def update(self, instance: User, validated_data):
+        name  = self.validated_data.get("name",instance.name)
+        cropped_image  = self.validated_data.get("cropped_image",None)
+
+        if cropped_image and len(cropped_image) > 1000:
+            converted_image = convert_base64_image_to_image(cropped_image,name)
+
+            instance.image = converted_image
+
+        return super().update(instance, validated_data)

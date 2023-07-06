@@ -69,7 +69,7 @@ def generate_image(image: str) -> str:
     request = RequestMiddleware(get_response=None)
     request:HttpRequest = request.thread_local.current_request
 
-    return request.build_absolute_uri(f"/media/{image}")
+    return request.build_absolute_uri(image)
 
 
 def generate_unique_username(username: str | None = generate_unique_id(12)):

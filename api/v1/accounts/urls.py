@@ -18,6 +18,7 @@ urlpatterns = [
     re_path(r'^email/confirm/(?P<token>.*)/$',views.email_confirmation),
     # settings apis
     re_path(r'settings/profile/$', views.settings_public_profile),
+    re_path(r'settings/profile/edit/$', views.edit_public_profile),
 
 
     #jwt auth routes

@@ -38,7 +38,7 @@ def app(request: HttpRequest):
         bookmark_count = 2
         notification_count = 129
         is_pro_member = user.membership_type == "pro"
-        user_image = generate_image(user.thumbnail_image) if user.thumbnail_image else False
+        user_image = generate_image(user.thumbnail_image.url) if user.thumbnail_image else False
 
 
         response_data = {
@@ -202,8 +202,10 @@ def sign_out(request: HttpRequest, session_id):
 @session_required()
 def settings_public_profile(request: HttpRequest):
     user: User = request.user
-    
-    serialized_instance = PublicProfileSettingsSerializer(user).data
+    context = {
+        "request": request
+    }
+    serialized_instance = PublicProfileSettingsSerializer(user,context=context).data
 
     response_data = {
         "statusCode":6000,
@@ -215,3 +217,41 @@ def settings_public_profile(request: HttpRequest):
     }
 
     return Response(response_data,status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@session_required()
+def edit_public_profile(request: HttpRequest):
+    user: User = request.user
+
+    serialized = PublicProfileSettingsSerializer(data=request.data,instance=user,context={"request": request})
+
+    if serialized.is_valid():
+        instance: User = serialized.save()
+
+        thumbnail_image = generate_image(instance.thumbnail_image.url)
+        username = instance.username
+        name = instance.name
+
+        response_data = {
+            "statusCode": 6000,
+            "data":{
+                "data":{
+                    "thumbnail":thumbnail_image,
+                    "username":username,
+                    "name":name,
+                },
+                "title": "Success",
+                "message": "Success"
+            }
+        }
+    else:
+        response_data = {
+            "statusCode": 6001,
+            "data":{
+                "title": "Validation Error",
+                "message": generate_serializer_errors(serialized._errors)
+            }
+        }
+    
+    return Response(response_data)
