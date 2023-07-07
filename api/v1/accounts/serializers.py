@@ -259,5 +259,8 @@ class PublicProfileSettingsSerializer(serializers.ModelSerializer):
             converted_image = convert_base64_image_to_image(cropped_image,name)
 
             instance.image = converted_image
+        elif cropped_image and cropped_image == "CANCELLED":
+            instance.image = None
+            instance.thumbnail_image = None
 
         return super().update(instance, validated_data)

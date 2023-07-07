@@ -229,7 +229,7 @@ def edit_public_profile(request: HttpRequest):
     if serialized.is_valid():
         instance: User = serialized.save()
 
-        thumbnail_image = generate_image(instance.thumbnail_image.url)
+        thumbnail_image = generate_image(instance.thumbnail_image.url) if instance.thumbnail_image else False
         username = instance.username
         name = instance.name
 

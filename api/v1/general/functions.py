@@ -50,7 +50,7 @@ def send_email(to_address, subject, content, html_content, attachment=None, atta
 
 
 
-def convert_base64_image_to_image(base64_image: str, name: str = None):
+def convert_base64_image_to_image(base64_image: str, name: str | None = None):
     """
          converting base64 image into normal image type
     """
